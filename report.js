@@ -51,17 +51,27 @@ document.addEventListener('click', e => {
   if (e.target.id === 'load-another-btn') resetToUpload();
 });
 
+// ── Bottom-bar "Clear filter" button ──────────────────────────────────────
+document.addEventListener('click', e => {
+  if (e.target.id === 'clear-filter-btn') {
+    document.dispatchEvent(new CustomEvent('tms:clearfilter'));
+  }
+});
+
 function resetToUpload() {
   scanResult = null;
   $('upload-error').classList.add('hidden');
   $('upload-error').textContent = '';
   $('progress-wrap').classList.add('hidden');
+  $('drop-zone').classList.remove('hidden');
   $('progress-bar-inner').style.width = '0%';
   $('panel-results').innerHTML = '';
   $('panel-issues').innerHTML  = '';
   $('bottom-info').textContent = 'Upload a TOS project ZIP to begin';
   $('clear-filter-btn').classList.add('hidden');
   $('pdf-btn').classList.add('hidden');
+  activeStatus = null;
+  activeIssue = null;
   switchTab('upload');
 }
 
@@ -302,6 +312,9 @@ function clearFilter() {
   activeStatus = null; activeIssue = null;
   applyFilter();
 }
+
+// Wire bottom-bar clear filter button to clearFilter
+document.addEventListener('tms:clearfilter', () => clearFilter());
 
 function applyFilter() {
   document.querySelectorAll('.sum-card').forEach(c => {
