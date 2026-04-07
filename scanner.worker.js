@@ -1,0 +1,128 @@
+// scanner.worker.js
+// Web Worker for ZIP extraction, XML parsing, and TOS job classification
+// Runs in a Web Worker context. Receives: { type: 'scan', buffer: ArrayBuffer, filename: string }
+// Posts: { type: 'progress', pct, job } during scanning
+// Posts: { type: 'result', data }       when done
+// Posts: { type: 'error', message }     on failure
+
+importScripts(
+  'https://cdn.jsdelivr.net/npm/fflate@0.8.2/umd/index.js',
+  'https://cdn.jsdelivr.net/npm/fast-xml-parser@4.3.6/src/fxp.js',
+);
+
+// ── Load local modules ─────────────────────────────────────────────────────
+// Because we can't use ES module imports in a classic worker,
+// we use a self-executing pattern: each module checks for `self` and
+// attaches exports to it.
+importScripts('component-map-umd.js', 'analyzer-umd.js');
+
+const { COMPONENT_MAP, SKIP_COMPONENTS } = self.TMS_MAP;
+const { classifyNode, classifyJob, scoreJob, buildResult } = self.TMS_ANALYZER;
+
+// ── XML parser config ──────────────────────────────────────────────────────
+const XML_OPTS = {
+  ignoreAttributes: false,
+  attributeNamePrefix: '@_',
+  isArray: (name) => ['node', 'elementParameter'].includes(name),
+};
+
+// ── Main handler ───────────────────────────────────────────────────────────
+self.onmessage = function(e) {
+  const { type, buffer, filename } = e.data;
+  if (type !== 'scan') return;
+
+  const t0 = Date.now();
+
+  try {
+    // 1. Decompress ZIP
+    const uint8 = new Uint8Array(buffer);
+    let files;
+    try {
+      files = fflate.unzipSync(uint8);
+    } catch (err) {
+      self.postMessage({ type: 'error', message: 'Cannot read archive. File may be corrupted.' });
+      return;
+    }
+
+    // 2. Find .item files
+    const itemEntries = Object.entries(files).filter(([path]) => path.endsWith('.item'));
+    if (itemEntries.length === 0) {
+      self.postMessage({ type: 'error', message: 'No .item files found. Is this a TOS project?' });
+      return;
+    }
+
+    // 3. Parse and classify each job
+    const jobs = [];
+    let skippedXml = 0;
+
+    for (let i = 0; i < itemEntries.length; i++) {
+      const [path, bytes] = itemEntries[i];
+      const jobName = path.split('/').pop().replace('.item', '');
+
+      // Progress update
+      self.postMessage({
+        type: 'progress',
+        pct: Math.round(((i + 1) / itemEntries.length) * 100),
+        job: jobName,
+        current: i + 1,
+        total: itemEntries.length,
+      });
+
+      // Parse XML
+      let xmlDoc;
+      try {
+        const xmlStr = new TextDecoder().decode(bytes);
+        const parser = new fxparser.XMLParser(XML_OPTS);
+        xmlDoc = parser.parse(xmlStr);
+      } catch (err) {
+        skippedXml++;
+        continue;
+      }
+
+      // Extract nodes
+      const rawNodes = xmlDoc?.talendfile?.node || [];
+      const nodeResults = [];
+      const issues = [];
+
+      for (const rawNode of rawNodes) {
+        const componentType = rawNode['@_componentName'] || '';
+
+        // Collect expression text from elementParameter values
+        const params = rawNode.elementParameter || [];
+        const exprText = params
+          .map(p => String(p['@_value'] || ''))
+          .join('\n');
+
+        const result = classifyNode(componentType, exprText, COMPONENT_MAP, SKIP_COMPONENTS);
+        nodeResults.push(result);
+
+        // Issue push logic: exactly one push per node
+        // For tMap with leftDataset: JOIN_EDGE_STALE / STALE_LEFTDATASET take priority (handled in Task 8)
+        // For now, push classifyNode flag if any
+        if (result.flag) {
+          issues.push({
+            flag:   result.flag,
+            node:   rawNode['@_name'] || componentType,
+            detail: result.flag === 'UNKNOWN_COMPONENT'
+              ? `Component '${componentType}' is not in COMPONENT_MAP`
+              : exprText.slice(0, 120),
+          });
+        }
+      }
+
+      const status = classifyJob(nodeResults);
+      const score  = scoreJob(status, nodeResults);
+
+      jobs.push({ name: jobName, status, nodes: nodeResults.length, issues, score });
+    }
+
+    // 4. Build result
+    const result = buildResult(jobs, Date.now() - t0);
+    result.meta = { filename, skipped_xml: skippedXml };
+
+    self.postMessage({ type: 'result', data: result });
+
+  } catch (err) {
+    self.postMessage({ type: 'error', message: `Unexpected error: ${err.message}` });
+  }
+};
