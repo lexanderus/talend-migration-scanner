@@ -3,7 +3,7 @@
 Free browser-based tool that scans a Talend Open Studio project ZIP
 and reports the percentage of jobs that can automatically migrate to Visual Flow.
 
-**[Try it →](https://talend-scanner.visualflow.io)**
+**[Try it →](https://lexanderus.github.io/talend-migration-scanner)**
 
 ## Features
 - 🔒 No data leaves your browser — ZIP analyzed locally
@@ -13,7 +13,7 @@ and reports the percentage of jobs that can automatically migrate to Visual Flow
 - 🆓 Free & open source (MIT)
 
 ## How to use
-1. Go to [talend-scanner.visualflow.io](https://talend-scanner.visualflow.io)
+1. Go to [lexanderus.github.io/talend-migration-scanner](https://lexanderus.github.io/talend-migration-scanner)
 2. Drop your TOS project ZIP (File → Export → Export items)
 3. View migration readiness report
 4. Download PDF for stakeholders
