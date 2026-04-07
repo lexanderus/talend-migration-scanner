@@ -51,6 +51,19 @@ self.onmessage = function(e) {
       return;
     }
 
+    // Detect TOS version from .project file (if present)
+    let tosVersion = null;
+    for (const [path, bytes] of Object.entries(files)) {
+      if (path.endsWith('.project')) {
+        try {
+          const content = new TextDecoder().decode(bytes);
+          const match = content.match(/<technicalLabel>([^<]+)<\/technicalLabel>/);
+          if (match) tosVersion = match[1];
+        } catch (_) {}
+        break;
+      }
+    }
+
     // 3. Parse and classify each job
     const jobs = [];
     let skippedXml = 0;
@@ -96,13 +109,40 @@ self.onmessage = function(e) {
         const result = classifyNode(componentType, exprText, COMPONENT_MAP, SKIP_COMPONENTS);
         nodeResults.push(result);
 
-        // Issue push logic: exactly one push per node
-        // For tMap with leftDataset: JOIN_EDGE_STALE / STALE_LEFTDATASET take priority (handled in Task 8)
-        // For now, push classifyNode flag if any
-        if (result.flag) {
+        // Combined issue push — exactly one push per node, no double-push possible.
+        // For tMap with leftDataset: JOIN_EDGE_STALE / STALE_LEFTDATASET take priority.
+        const leftDataset = rawNode['@_leftDataset'] || '';
+        if (componentType === 'tMap' && leftDataset) {
+          // Priority 1: leftDataset refers to a WRITE node → JOIN_EDGE_STALE
+          const refNode = rawNodes.find(n => (n['@_name'] || '') === leftDataset);
+          if (refNode && COMPONENT_MAP[refNode['@_componentName'] || '']?.operation === 'WRITE') {
+            issues.push({
+              flag: 'JOIN_EDGE_STALE',
+              node: rawNode['@_name'] || componentType,
+              detail: `leftDataset='${leftDataset}' references a WRITE node`,
+            });
+          // Priority 2: leftDataset references a node not present in graph → STALE_LEFTDATASET
+          } else if (!refNode) {
+            issues.push({
+              flag: 'STALE_LEFTDATASET',
+              node: rawNode['@_name'] || componentType,
+              detail: `leftDataset='${leftDataset}' not found in job graph`,
+            });
+          // Priority 3: no leftDataset edge issue — fall back to classifyNode flag if any
+          } else if (result.flag) {
+            issues.push({
+              flag: result.flag,
+              node: rawNode['@_name'] || componentType,
+              detail: result.flag === 'UNKNOWN_COMPONENT'
+                ? `Component '${componentType}' is not in COMPONENT_MAP`
+                : exprText.slice(0, 120),
+            });
+          }
+        } else if (result.flag) {
+          // Non-tMap nodes (or tMap with no leftDataset): push classifyNode flag normally
           issues.push({
-            flag:   result.flag,
-            node:   rawNode['@_name'] || componentType,
+            flag: result.flag,
+            node: rawNode['@_name'] || componentType,
             detail: result.flag === 'UNKNOWN_COMPONENT'
               ? `Component '${componentType}' is not in COMPONENT_MAP`
               : exprText.slice(0, 120),
@@ -118,7 +158,7 @@ self.onmessage = function(e) {
 
     // 4. Build result
     const result = buildResult(jobs, Date.now() - t0);
-    result.meta = { filename, skipped_xml: skippedXml };
+    result.meta = { filename, skipped_xml: skippedXml, tos_version: tosVersion };
 
     self.postMessage({ type: 'result', data: result });
 

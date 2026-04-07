@@ -151,6 +151,11 @@ function renderResults(result, filename) {
   const circumference = 251.2;
   const offset = circumference * (1 - summary.auto_pct / 100);
 
+  const versionWarning = result.meta?.tos_version &&
+    parseFloat(result.meta.tos_version) < 6
+    ? ' · ⚠️ TOS version may not be fully supported'
+    : '';
+
   $('panel-results').innerHTML = `
   <div class="results-panel">
     <!-- Compact upload bar -->
@@ -158,7 +163,7 @@ function renderResults(result, filename) {
       <div class="ub-icon">📦</div>
       <div class="ub-text">
         <div class="ub-title">${filename} <span style="color:#28a745;font-size:10px;">✓ loaded</span></div>
-        <div class="ub-sub">${summary.total_jobs} jobs · analyzed in ${summary.analysis_ms}ms
+        <div class="ub-sub">${summary.total_jobs} jobs · analyzed in ${summary.analysis_ms}ms${versionWarning}
           ${result.meta?.skipped_xml ? ` · ⚠️ ${result.meta.skipped_xml} files skipped (XML error)` : ''}
         </div>
       </div>
