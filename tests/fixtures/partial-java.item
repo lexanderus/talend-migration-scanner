@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<talendfile>
+  <node componentName="tMSSqlInput" />
+  <node componentName="tMap">
+    <elementParameter name="MAPPING">
+      <value>Relational.ISNULL(row.col.trim())</value>
+    </elementParameter>
+  </node>
+  <node componentName="tMSSqlOutput" />
+</talendfile>
