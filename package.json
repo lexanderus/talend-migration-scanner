@@ -1,0 +1,12 @@
+{
+  "name": "talend-migration-scanner",
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "test": "node --test tests/component-map.test.mjs tests/analyzer.test.mjs",
+    "serve": "python -m http.server 8080"
+  },
+  "devDependencies": {
+    "fast-xml-parser": "^4.3.6"
+  }
+}

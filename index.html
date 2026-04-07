@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Talend Migration Scanner</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<header class="page-header">
+  <div class="logo">Talend <span>Migration Scanner</span></div>
+  <div class="tagline">Powered by Visual Flow · No data leaves your browser · Free &amp; Open Source</div>
+</header>
+
+<div class="app-shell">
+
+  <!-- Tab bar -->
+  <div class="tab-bar" id="tab-bar">
+    <div class="tab active" data-tab="upload"><div class="step-dot">1</div>📦 Upload</div>
+    <div class="tab" data-tab="results"><div class="step-dot">2</div>📊 Results</div>
+    <div class="tab" data-tab="issues"><div class="step-dot">3</div>⚠️ Issues</div>
+    <div class="tab" data-tab="export"><div class="step-dot">4</div>📄 Export</div>
+  </div>
+
+  <!-- Upload panel -->
+  <div class="panel active" id="panel-upload">
+    <div class="panel-centered">
+      <div class="upload-drop-zone" id="drop-zone">
+        <div class="icon">📦</div>
+        <div class="title">Drop your TOS project ZIP here</div>
+        <div class="sub">or click to browse</div>
+        <input type="file" id="file-input" accept=".zip" hidden>
+        <button class="choose-btn" id="choose-btn">Choose file</button>
+        <div class="privacy">🔒 Your ZIP never leaves the browser</div>
+      </div>
+      <div class="upload-supported">Supported: Talend Open Studio 6.x · 7.x · 8.x</div>
+      <div class="upload-error hidden" id="upload-error"></div>
+      <!-- Progress (hidden until analysis starts) -->
+      <div class="progress-wrap hidden" id="progress-wrap">
+        <div class="progress-label" id="progress-label">Analyzing...</div>
+        <div class="progress-bar-outer">
+          <div class="progress-bar-inner" id="progress-bar-inner" style="width:0%"></div>
+        </div>
+        <div class="progress-job" id="progress-job"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Results panel (populated by report.js) -->
+  <div class="panel" id="panel-results"></div>
+
+  <!-- Issues panel (populated by report.js) -->
+  <div class="panel" id="panel-issues"></div>
+
+  <!-- Export panel -->
+  <div class="panel" id="panel-export">
+    <div class="panel-centered">
+      <div class="export-box">
+        <div class="icon">📄</div>
+        <div class="title">Export Migration Report</div>
+        <div class="sub">Executive summary, full job table and all detected issues</div>
+        <button class="export-btn" id="export-btn">⬇ Download PDF</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Bottom bar -->
+  <div class="bottom-bar">
+    <div class="info" id="bottom-info">Upload a TOS project ZIP to begin</div>
+    <button class="btn btn-secondary hidden" id="clear-filter-btn">↺ Clear filter</button>
+    <button class="btn btn-primary hidden" id="pdf-btn">⬇ Download PDF</button>
+  </div>
+
+</div>
+
+<script type="module" src="report.js"></script>
+</body>
+</html>
