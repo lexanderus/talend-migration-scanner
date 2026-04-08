@@ -7,7 +7,7 @@
 
 importScripts(
   'https://cdn.jsdelivr.net/npm/fflate@0.8.2/umd/index.js',
-  'https://cdn.jsdelivr.net/npm/fast-xml-parser@4.3.6/src/fxp.js',
+  'vendor/fast-xml-parser.min.js',
 );
 
 // ── Load local modules ─────────────────────────────────────────────────────
