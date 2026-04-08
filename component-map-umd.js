@@ -23,6 +23,7 @@ self.TMS_MAP = (function() {
     tFileInputXML:        { operation: 'READ',              storage: 'xml' },
     tFileInputParquet:    { operation: 'READ',              storage: 'parquet' },
     tRowGenerator:        { operation: 'READ',              storage: 'cluster' },
+    tFileInputMSXML:      { operation: 'READ',              storage: 'xml' },
     tFixedFlowInput:      { operation: 'READ',              storage: 'cluster' },
 
     // ── WRITE (database) ─────────────────────────────────────────────────
@@ -40,6 +41,7 @@ self.TMS_MAP = (function() {
     tFileOutputExcel:     { operation: 'WRITE',             storage: 'cluster' },
     tFileOutputJSON:      { operation: 'WRITE',             storage: 'json' },
     tFileOutputXML:       { operation: 'WRITE',             storage: 'xml' },
+    tAdvancedFileOutputXML: { operation: 'WRITE',            storage: 'xml' },
     tLogRow:              { operation: 'WRITE',             storage: 'stdout' },
 
     // ── TRANSFORM ────────────────────────────────────────────────────────
@@ -55,6 +57,10 @@ self.TMS_MAP = (function() {
     tConvertType:         { operation: 'TRANSFORM' },
     tSetGlobalVar:        { operation: 'TRANSFORM' },
     tFlowToIterate:       { operation: 'TRANSFORM' },
+    tExtractDelimitedFields: { operation: 'TRANSFORM' },
+    tReplace:             { operation: 'TRANSFORM' },
+    tIterateToFlow:       { operation: 'TRANSFORM' },
+    tFileConcat:          { operation: 'TRANSFORM' },
     tSchemaComplianceCheck: { operation: 'TRANSFORM' },
 
     // ── REST / HTTP / ESB ─────────────────────────────────────────────────
@@ -106,6 +112,13 @@ self.TMS_MAP = (function() {
     'tRouteLoop', 'tRouteFault', 'tRouteDirectInput',
     'tRESTRequestLoop', 'tESBProviderRequestLoop',
     'tSetHeader', 'tSetBody',
+    // FTP utilities
+    'tFTPFileList', 'tFTPRename', 'tFTPDelete', 'tFTPExist', 'tFTPGet', 'tFTPPut',
+    'tFTPConnection', 'tFTPClose',
+    'tSFTPGet', 'tSFTPPut', 'tSFTPConnection', 'tSFTPClose',
+    // File system iterators / utilities
+    'tFileList', 'tFileProperties', 'tFileTouch', 'tFileCompare',
+    'tFileFetch', 'tFileRename',
   ]);
 
   return { COMPONENT_MAP, SKIP_COMPONENTS };

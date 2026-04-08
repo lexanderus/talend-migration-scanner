@@ -22,6 +22,7 @@ export const COMPONENT_MAP = {
   tFileInputXML:        { operation: 'READ',              storage: 'xml' },
   tFileInputParquet:    { operation: 'READ',              storage: 'parquet' },
   tRowGenerator:        { operation: 'READ',              storage: 'cluster' },
+  tFileInputMSXML:      { operation: 'READ',              storage: 'xml' },
   tFixedFlowInput:      { operation: 'READ',              storage: 'cluster' },
 
   // ── WRITE (database) ─────────────────────────────────────────────────────
@@ -39,6 +40,7 @@ export const COMPONENT_MAP = {
   tFileOutputExcel:     { operation: 'WRITE',             storage: 'cluster' },
   tFileOutputJSON:      { operation: 'WRITE',             storage: 'json' },
   tFileOutputXML:       { operation: 'WRITE',             storage: 'xml' },
+  tAdvancedFileOutputXML: { operation: 'WRITE',            storage: 'xml' },
   tLogRow:              { operation: 'WRITE',             storage: 'stdout' },
 
   // ── TRANSFORM ────────────────────────────────────────────────────────────
@@ -54,6 +56,10 @@ export const COMPONENT_MAP = {
   tConvertType:         { operation: 'TRANSFORM' },
   tSetGlobalVar:        { operation: 'TRANSFORM' },
   tFlowToIterate:       { operation: 'TRANSFORM' },
+  tExtractDelimitedFields: { operation: 'TRANSFORM' },
+  tReplace:             { operation: 'TRANSFORM' },
+  tIterateToFlow:       { operation: 'TRANSFORM' },
+  tFileConcat:          { operation: 'TRANSFORM' },
   tSchemaComplianceCheck: { operation: 'TRANSFORM' },
 
   // ── REST / HTTP / ESB ─────────────────────────────────────────────────────
@@ -106,4 +112,11 @@ export const SKIP_COMPONENTS = new Set([
   'tRouteLoop', 'tRouteFault', 'tRouteDirectInput',
   'tRESTRequestLoop', 'tESBProviderRequestLoop',
   'tSetHeader', 'tSetBody',
+  // FTP utilities
+  'tFTPFileList', 'tFTPRename', 'tFTPDelete', 'tFTPExist', 'tFTPGet', 'tFTPPut',
+  'tFTPConnection', 'tFTPClose',
+  'tSFTPGet', 'tSFTPPut', 'tSFTPConnection', 'tSFTPClose',
+  // File system iterators / utilities
+  'tFileList', 'tFileProperties', 'tFileTouch', 'tFileCompare',
+  'tFileFetch', 'tFileRename',
 ]);
