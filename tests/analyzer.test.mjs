@@ -34,7 +34,7 @@ describe('classifyNode', () => {
   });
 
   it('returns UNKNOWN_COMPONENT for unmapped non-skip non-java component', () => {
-    const r = classifyNode('tOracleInput', '', COMPONENT_MAP, SKIP_COMPONENTS);
+    const r = classifyNode('tSomeCustomComponent', '', COMPONENT_MAP, SKIP_COMPONENTS);
     assert.equal(r.type, 'unknown');
     assert.equal(r.flag, 'UNKNOWN_COMPONENT');
   });
