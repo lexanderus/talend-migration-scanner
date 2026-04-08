@@ -108,6 +108,8 @@ export const SKIP_COMPONENTS = new Set([
   'tOracleConnection', 'tOracleCommit', 'tOracleRollback', 'tOracleClose',
   'tDBConnection', 'tDBCommit', 'tDBRollback', 'tDBClose',
   'tSnowflakeConnection', 'tSnowflakeClose',
+  // JSON document lifecycle
+  'tJSONDocOpen', 'tJSONDocSave',
   'DI_CNTL_Job_Tracking_Stats',
   // ESB / route lifecycle
   'tRouteLoop', 'tRouteFault', 'tRouteDirectInput',
