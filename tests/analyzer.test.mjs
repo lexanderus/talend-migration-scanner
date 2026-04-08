@@ -22,6 +22,16 @@ describe('classifyNode', () => {
     assert.equal(r.type, 'java');
   });
 
+  it('returns java for tJavaRow', () => {
+    const r = classifyNode('tJavaRow', '', COMPONENT_MAP, SKIP_COMPONENTS);
+    assert.equal(r.type, 'java');
+  });
+
+  it('returns java for tJavaFlex', () => {
+    const r = classifyNode('tJavaFlex', '', COMPONENT_MAP, SKIP_COMPONENTS);
+    assert.equal(r.type, 'java');
+  });
+
   it('returns JAVA_EXPR flag when expression contains Relational.ISNULL', () => {
     const r = classifyNode('tMap', 'Relational.ISNULL(x.trim())', COMPONENT_MAP, SKIP_COMPONENTS);
     assert.equal(r.type, 'mapped');

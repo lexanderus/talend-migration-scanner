@@ -23,7 +23,7 @@ self.TMS_ANALYZER = (function() {
    * @returns {{ type: 'mapped'|'skip'|'java'|'unknown', flag: string|null }}
    */
   function classifyNode(componentType, expressionText, componentMap, skipComponents) {
-    if (componentType === 'tJava') {
+    if (componentType === 'tJava' || componentType === 'tJavaRow' || componentType === 'tJavaFlex') {
       return { type: 'java', flag: null };
     }
     if (skipComponents.has(componentType)) {

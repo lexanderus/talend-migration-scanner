@@ -20,7 +20,7 @@ const JAVA_EXPR_PATTERNS = [
  * @returns {{ type: 'mapped'|'skip'|'java'|'unknown', flag: string|null }}
  */
 export function classifyNode(componentType, expressionText, componentMap, skipComponents) {
-  if (componentType === 'tJava') {
+  if (componentType === 'tJava' || componentType === 'tJavaRow' || componentType === 'tJavaFlex') {
     return { type: 'java', flag: null };
   }
   if (skipComponents.has(componentType)) {
