@@ -23,6 +23,7 @@ const { classifyNode, classifyJob, scoreJob, buildResult } = self.TMS_ANALYZER;
 const XML_OPTS = {
   ignoreAttributes: false,
   attributeNamePrefix: '@_',
+  removeNSPrefix: true,
   isArray: (name) => ['node', 'elementParameter'].includes(name),
 };
 
@@ -93,7 +94,10 @@ self.onmessage = function(e) {
       }
 
       // Extract nodes
-      const rawNodes = xmlDoc?.talendfile?.node || [];
+      // Real TOS files: root is <talendfile:ProcessType> → after removeNSPrefix → ProcessType
+      // Test fixtures: root is <talendfile> → talendfile
+      const root = xmlDoc?.ProcessType || xmlDoc?.talendfile || {};
+      const rawNodes = root?.node || [];
       const nodeResults = [];
       const issues = [];
 
