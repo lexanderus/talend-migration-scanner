@@ -247,9 +247,12 @@ function renderResults(result, filename) {
               <tbody>
                 ${jobs.map(j => {
                   const issueHtml = j.issues.length
-                    ? j.issues.map(i =>
-                        `<span class="issue-tag${i.flag==='MANUAL'?' manual':''}">${i.flag}</span>`
-                      ).join('')
+                    ? j.issues.map(i => {
+                        const label = i.flag === 'UNKNOWN_COMPONENT' && i.detail
+                          ? i.detail.match(/'([^']+)'/)?.[1] || i.flag
+                          : i.flag;
+                        return `<span class="issue-tag${i.flag==='MANUAL'?' manual':''}" title="${i.detail || i.flag}">${label}</span>`;
+                      }).join('')
                     : '<span style="color:#aaa">—</span>';
                   const scoreHtml = j.score === null
                     ? '<span style="color:#aaa;font-size:10px">n/a</span>'
