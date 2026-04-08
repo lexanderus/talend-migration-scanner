@@ -57,6 +57,26 @@ self.TMS_MAP = (function() {
     tFlowToIterate:       { operation: 'TRANSFORM' },
     tSchemaComplianceCheck: { operation: 'TRANSFORM' },
 
+    // ── REST / HTTP / ESB ─────────────────────────────────────────────────
+    tRESTClient:          { operation: 'READ',              storage: 'rest' },
+    tRESTRequest:         { operation: 'READ',              storage: 'rest' },
+    tRESTResponse:        { operation: 'WRITE',             storage: 'rest' },
+    tHTTPClient:          { operation: 'READ',              storage: 'rest' },
+    tHttpRequest:         { operation: 'READ',              storage: 'rest' },
+    tSOAP:                { operation: 'READ',              storage: 'soap' },
+    tESBConsumer:         { operation: 'READ',              storage: 'esb' },
+    tESBProviderRequest:  { operation: 'READ',              storage: 'esb' },
+    tESBProviderResponse: { operation: 'WRITE',             storage: 'esb' },
+    tESBProviderFault:    { operation: 'WRITE',             storage: 'esb' },
+    tRouteInput:          { operation: 'READ',              storage: 'esb' },
+    tRouteOutput:         { operation: 'WRITE',             storage: 'esb' },
+
+    // ── XML / JSON extraction ──────────────────────────────────────────────
+    tExtractXMLField:     { operation: 'TRANSFORM' },
+    tExtractJSONFields:   { operation: 'TRANSFORM' },
+    tXMLMap:              { operation: 'TRANSFORM' },
+    tComplexXMLInput:     { operation: 'READ',              storage: 'xml' },
+
     // ── GROUP / SORT / FILTER / DEDUP / JOIN ─────────────────────────────
     tAggregateRow:        { operation: 'GROUP' },
     tSortRow:             { operation: 'SORT' },
@@ -82,6 +102,10 @@ self.TMS_MAP = (function() {
     'tDBConnection', 'tDBCommit', 'tDBRollback', 'tDBClose',
     'tSnowflakeConnection', 'tSnowflakeClose',
     'DI_CNTL_Job_Tracking_Stats',
+    // ESB / route lifecycle
+    'tRouteLoop', 'tRouteFault', 'tRouteDirectInput',
+    'tRESTRequestLoop', 'tESBProviderRequestLoop',
+    'tSetHeader', 'tSetBody',
   ]);
 
   return { COMPONENT_MAP, SKIP_COMPONENTS };

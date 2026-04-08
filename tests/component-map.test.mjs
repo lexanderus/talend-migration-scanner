@@ -17,6 +17,10 @@ describe('COMPONENT_MAP', () => {
       'tDBInput','tDBOutput','tDBRow',
       'tFileInputJSON','tFileOutputJSON',
       'tFileInputExcel','tFileOutputExcel',
+      // REST / ESB
+      'tRESTClient','tRESTRequest','tRESTResponse',
+      'tESBProviderRequest','tESBProviderResponse',
+      'tExtractXMLField','tExtractJSONFields','tXMLMap',
     ];
     for (const c of required) {
       assert.ok(c in COMPONENT_MAP, `Missing: ${c}`);
