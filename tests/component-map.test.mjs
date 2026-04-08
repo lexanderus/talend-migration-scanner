@@ -36,7 +36,7 @@ describe('COMPONENT_MAP', () => {
   it('SKIP_COMPONENTS contains required entries', () => {
     const required = [
       'tParallelize','tContextLoad','tFileUnarchive','tRunJob','DI_CNTL_Job_Tracking_Stats',
-      'tPreJob','tPostJob','tWarn','tDie',
+      'tPreJob','tPostJob','tPrejob','tPostjob','tWarn','tDie',
       'tMysqlConnection','tMysqlCommit','tMysqlClose',
       'tMSSqlConnection','tDBConnection',
     ];

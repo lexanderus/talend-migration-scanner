@@ -40,6 +40,7 @@ self.TMS_MAP = (function() {
     tFileOutputDelimited: { operation: 'WRITE',             storage: 'cluster' },
     tFileOutputExcel:     { operation: 'WRITE',             storage: 'cluster' },
     tFileOutputJSON:      { operation: 'WRITE',             storage: 'json' },
+    tJSONDocOutput:       { operation: 'WRITE',             storage: 'json' },
     tFileOutputXML:       { operation: 'WRITE',             storage: 'xml' },
     tAdvancedFileOutputXML: { operation: 'WRITE',            storage: 'xml' },
     tLogRow:              { operation: 'WRITE',             storage: 'stdout' },
@@ -97,7 +98,7 @@ self.TMS_MAP = (function() {
   const SKIP_COMPONENTS = new Set([
     'tParallelize', 'tContextLoad', 'tContextDump',
     'tFileUnarchive', 'tFileArchive',
-    'tRunJob', 'tPreJob', 'tPostJob',
+    'tRunJob', 'tPreJob', 'tPostJob', 'tPrejob', 'tPostjob',
     'tWarn', 'tDie', 'tAssert',
     'tMsgBox', 'tSleep',
     'tCreateTemporaryFile', 'tFileDelete', 'tFileCopy', 'tFileExist',
