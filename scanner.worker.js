@@ -45,8 +45,16 @@ self.onmessage = function(e) {
       return;
     }
 
-    // 2. Find .item files
-    const itemEntries = Object.entries(files).filter(([path]) => path.endsWith('.item'));
+    // 2. Find job .item files (only under /process/ — skip metadata/, context/, etc.)
+    const allItems = Object.entries(files).filter(([path]) => path.endsWith('.item'));
+    let itemEntries = allItems.filter(([path]) => {
+      const lower = path.toLowerCase().replace(/\\/g, '/');
+      return lower.includes('/process/');
+    });
+    // Fallback: if no /process/ folder found, use all .item files (flat export or test fixtures)
+    if (itemEntries.length === 0 && allItems.length > 0) {
+      itemEntries = allItems;
+    }
     if (itemEntries.length === 0) {
       self.postMessage({ type: 'error', message: 'No .item files found. Is this a TOS project?' });
       return;
