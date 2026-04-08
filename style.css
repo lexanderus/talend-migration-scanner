@@ -198,6 +198,7 @@ body { font-family: 'Segoe UI', system-ui, sans-serif; background: var(--bg); co
 .job-table tbody tr:nth-child(even) td { background: #f8f9ff; }
 .job-table tbody tr:hover td { background: #e8f4f8; }
 .job-table tr.hidden { display: none; }
+.job-table tr.highlight-row td { background: #fff9c4 !important; transition: background 2s; }
 .status-badge { display: inline-block; border-radius: 4px; padding: 2px 7px; font-size: 9px; font-weight: 700; }
 .badge-auto    { background: var(--auto-bg);    color: var(--auto-fg); }
 .badge-partial { background: var(--partial-bg); color: var(--partial-fg); }

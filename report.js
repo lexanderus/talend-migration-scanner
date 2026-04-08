@@ -280,8 +280,6 @@ function renderResults(result, filename) {
     </div>
   </div>`;
 
-  // Wire up filters
-  initFilters();
   $('clear-filter-btn').classList.remove('hidden');
 }
 
@@ -318,6 +316,9 @@ function clearFilter() {
 
 // Wire bottom-bar clear filter button to clearFilter
 document.addEventListener('tms:clearfilter', () => clearFilter());
+
+// ── Filters wired once at startup (not per-scan) ───────────────────────────
+initFilters();
 
 function applyFilter() {
   document.querySelectorAll('.sum-card').forEach(c => {
@@ -398,7 +399,7 @@ function renderIssues(result) {
   for (const job of jobs) {
     for (const issue of job.issues) {
       if (!flagGroups[issue.flag]) flagGroups[issue.flag] = [];
-      flagGroups[issue.flag].push({ job: job.name, ...issue });
+      flagGroups[issue.flag].push({ job: job.name, status: job.status, ...issue });
     }
   }
 
@@ -423,7 +424,7 @@ function renderIssues(result) {
         ${items.map(item => `
           <div class="issue-item">
             <div class="ii-job">${item.job}
-              <span class="job-link" data-goto="PARTIAL">→ view in Results</span>
+              <span class="job-link" data-goto="${item.status}" data-job="${item.job}">→ view in Results</span>
             </div>
             <div class="ii-node">📍 ${item.node}</div>
             ${item.detail ? `<div class="ii-detail">${item.detail}</div>` : ''}
@@ -468,8 +469,26 @@ function renderIssues(result) {
     const link = e.target.closest('.job-link');
     if (link) {
       const status = link.dataset.goto;
+      const jobName = link.dataset.job;
       switchTab('results');
+      // Clear filters first, then apply status filter to show the job
+      clearFilter();
       toggleStatusFilter(status);
+      // Scroll and highlight the specific job row
+      if (jobName) {
+        requestAnimationFrame(() => {
+          const rows = document.querySelectorAll('.job-table tbody tr');
+          for (const row of rows) {
+            const nameCell = row.querySelector('td');
+            if (nameCell && nameCell.textContent.trim() === jobName) {
+              row.scrollIntoView({ behavior: 'smooth', block: 'center' });
+              row.classList.add('highlight-row');
+              setTimeout(() => row.classList.remove('highlight-row'), 2000);
+              break;
+            }
+          }
+        });
+      }
     }
   });
 }

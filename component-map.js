@@ -116,10 +116,12 @@ export const SKIP_COMPONENTS = new Set([
   'tRESTRequestLoop', 'tESBProviderRequestLoop',
   'tSetHeader', 'tSetBody',
   // FTP utilities
-  'tFTPFileList', 'tFTPRename', 'tFTPDelete', 'tFTPExist', 'tFTPGet', 'tFTPPut',
+  'tFTPFileList', 'tFTPRename', 'tFTPDelete', 'tFTPExist', 'tFTPFileExist', 'tFTPGet', 'tFTPPut',
   'tFTPConnection', 'tFTPClose',
   'tSFTPGet', 'tSFTPPut', 'tSFTPConnection', 'tSFTPClose',
   // File system iterators / utilities
   'tFileList', 'tFileProperties', 'tFileTouch', 'tFileCompare',
-  'tFileFetch', 'tFileRename',
+  'tFileFetch', 'tFileRename', 'tFileInputProperties',
+  // Control flow / loop utilities
+  'tForeach', 'tInfiniteLoop', 'tLoop', 'tLoopStart', 'tLoopEnd',
 ]);
