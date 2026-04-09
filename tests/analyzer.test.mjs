@@ -43,10 +43,18 @@ describe('classifyNode', () => {
     assert.equal(r.flag, 'JAVA_EXPR');
   });
 
-  it('returns JAVA_EXPR for Relational.ISNULL + .trim() chain (not auto-converted)', () => {
+  it('returns JAVA_EXPR when ternary RESULT has .trim() (not auto-converted)', () => {
+    // migrate_to_vf.py cannot convert "? null : col.trim()" — result is not a simple col ref
     const expr = '(Relational.ISNULL(row1.col)||row1.col.trim().equals(""))?null:row1.col.trim()';
     const r = classifyNode('tMap', expr, COMPONENT_MAP, SKIP_COMPONENTS);
     assert.equal(r.flag, 'JAVA_EXPR');
+  });
+
+  it('does NOT return JAVA_EXPR when .trim() is only in the CONDITION (auto-converted)', () => {
+    // migrate_to_vf.py regex matches this: "? null : row1.col" is a simple column ref
+    const expr = '(Relational.ISNULL(row1.col)||row1.col.trim().equals(""))?null:row1.col';
+    const r = classifyNode('tMap', expr, COMPONENT_MAP, SKIP_COMPONENTS);
+    assert.equal(r.flag, null);
   });
 
   it('does NOT return JAVA_EXPR for simple Relational.ISNULL (auto-converted)', () => {
