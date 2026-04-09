@@ -19,6 +19,10 @@ importScripts('component-map-umd.js', 'analyzer-umd.js');
 const { COMPONENT_MAP, SKIP_COMPONENTS } = self.TMS_MAP;
 const { classifyNode, classifyJob, scoreJob, buildResult } = self.TMS_ANALYZER;
 
+// Audit columns managed by migrate_to_vf.py — their expressions are skipped
+// (migrate_to_vf.py checks `out_col in _TALEND_AUDIT_COLS` before testing expressions)
+const AUDIT_COLS = new Set(['DI_JobID', 'DI_Create_DT', 'DI_Update_DT', 'DI_BatchID', 'DI_RowCount', 'DI_JobName']);
+
 // ── XML parser config ──────────────────────────────────────────────────────
 const XML_OPTS = {
   ignoreAttributes: false,
@@ -152,8 +156,10 @@ self.onmessage = function(e) {
           const nd = Array.isArray(rawNode.nodeData) ? rawNode.nodeData[0] : rawNode.nodeData;
           for (const tbl of (nd.outputTables || [])) {
             for (const entry of (tbl.mapperTableEntries || [])) {
+              const colName = entry['@_name'] || '';
               const expr = entry['@_expression'] || '';
-              if (expr) exprText += '\n' + expr;
+              // Skip audit column expressions (migrate_to_vf.py skips these via _TALEND_AUDIT_COLS)
+              if (expr && !AUDIT_COLS.has(colName)) exprText += '\n' + expr;
             }
           }
         }

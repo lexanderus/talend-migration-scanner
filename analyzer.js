@@ -5,6 +5,10 @@
 // Convertible patterns (Relational.ISNULL, .trim(), Numeric., Integer.parseInt etc.)
 // are intentionally excluded — they map to NULLIF/TRIM/CAST and are handled automatically.
 const JAVA_EXPR_PATTERNS = [
+  // Relational.ISNULL null-check WITH .trim() in the result — not auto-converted.
+  // The simple form (? null : table.col) IS auto-converted by migrate_to_vf.py;
+  // the .trim() variant fails its regex and returns ok=False.
+  /Relational\.ISNULL[^\n]*\.trim\s*\(/,
   /TalendString\./,          // string utility class — no SQL equivalent
   /TalendDate\.(?!parseDate)/, // date utility (except parseDate → to_date())
   /TalendDataGenerator\./,   // data gen — no SQL equivalent

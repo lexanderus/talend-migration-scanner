@@ -43,12 +43,18 @@ describe('classifyNode', () => {
     assert.equal(r.flag, 'JAVA_EXPR');
   });
 
-  it('does NOT return JAVA_EXPR for auto-convertible Relational.ISNULL', () => {
-    const r = classifyNode('tMap', 'Relational.ISNULL(x)', COMPONENT_MAP, SKIP_COMPONENTS);
+  it('returns JAVA_EXPR for Relational.ISNULL + .trim() chain (not auto-converted)', () => {
+    const expr = '(Relational.ISNULL(row1.col)||row1.col.trim().equals(""))?null:row1.col.trim()';
+    const r = classifyNode('tMap', expr, COMPONENT_MAP, SKIP_COMPONENTS);
+    assert.equal(r.flag, 'JAVA_EXPR');
+  });
+
+  it('does NOT return JAVA_EXPR for simple Relational.ISNULL (auto-converted)', () => {
+    const r = classifyNode('tMap', '(Relational.ISNULL(row1.col)||row1.col.equals("\\\\N"))?null:row1.col', COMPONENT_MAP, SKIP_COMPONENTS);
     assert.equal(r.flag, null);
   });
 
-  it('does NOT return JAVA_EXPR for auto-convertible .trim()', () => {
+  it('does NOT return JAVA_EXPR for auto-convertible .trim() alone', () => {
     const r = classifyNode('tMap', 'someVar.trim()', COMPONENT_MAP, SKIP_COMPONENTS);
     assert.equal(r.flag, null);
   });
