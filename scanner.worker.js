@@ -17,7 +17,7 @@ importScripts(
 importScripts('component-map-umd.js', 'analyzer-umd.js');
 
 const { COMPONENT_MAP, SKIP_COMPONENTS } = self.TMS_MAP;
-const { classifyNode, classifyJob, scoreJob, buildResult } = self.TMS_ANALYZER;
+const { classifyNode, classifyJob, scoreJob, buildResult, JAVA_EXPR_PATTERNS } = self.TMS_ANALYZER;
 
 // Audit columns managed by migrate_to_vf.py — their expressions are skipped
 // (migrate_to_vf.py checks `out_col in _TALEND_AUDIT_COLS` before testing expressions)
@@ -30,6 +30,16 @@ const XML_OPTS = {
   removeNSPrefix: true,
   isArray: (name) => ['node', 'elementParameter', 'connection', 'outputTables', 'inputTables', 'mapperTableEntries'].includes(name),
 };
+
+// Find the specific tMap expression that triggered JAVA_EXPR, for meaningful issue detail
+function findJavaExprDetail(tMapExprs) {
+  for (const { col, expr } of tMapExprs) {
+    if (JAVA_EXPR_PATTERNS.some(p => p.test(expr))) {
+      return `col=${col}: ${expr.slice(0, 100)}`;
+    }
+  }
+  return 'Java expression not auto-convertible';
+}
 
 // ── Main handler ───────────────────────────────────────────────────────────
 self.onmessage = function(e) {
@@ -152,6 +162,8 @@ self.onmessage = function(e) {
 
         // For tMap: also extract Java expressions from nodeData/outputTables/mapperTableEntries
         // (TOS stores tMap mapping expressions in <nodeData><outputTables><mapperTableEntries expression="...">)
+        // tMapExprs collects {col, expr} pairs for meaningful JAVA_EXPR issue details
+        const tMapExprs = [];
         if (componentType === 'tMap' && rawNode.nodeData) {
           const nd = Array.isArray(rawNode.nodeData) ? rawNode.nodeData[0] : rawNode.nodeData;
           for (const tbl of (nd.outputTables || [])) {
@@ -159,7 +171,10 @@ self.onmessage = function(e) {
               const colName = entry['@_name'] || '';
               const expr = entry['@_expression'] || '';
               // Skip audit column expressions (migrate_to_vf.py skips these via _TALEND_AUDIT_COLS)
-              if (expr && !AUDIT_COLS.has(colName)) exprText += '\n' + expr;
+              if (expr && !AUDIT_COLS.has(colName)) {
+                exprText += '\n' + expr;
+                tMapExprs.push({ col: colName, expr });
+              }
             }
           }
         }
@@ -206,7 +221,7 @@ self.onmessage = function(e) {
               node: nodeName,
               detail: result.flag === 'UNKNOWN_COMPONENT'
                 ? `Component '${componentType}' is not in COMPONENT_MAP`
-                : exprText.slice(0, 120),
+                : findJavaExprDetail(tMapExprs),
             });
           }
         } else if (result.flag) {

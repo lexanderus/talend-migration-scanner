@@ -618,7 +618,8 @@ async function generatePdf() {
       doc.text(`  • ${item.job} / ${item.node}`, M, y3); y3 += 5;
       if (item.detail) {
         doc.setTextColor(120);
-        doc.text(`    ${item.detail.slice(0, 80)}`, M, y3);
+        const detailLine = item.detail.replace(/[\n\r\t]+/g, ' ').slice(0, 90);
+        doc.text(`    ${detailLine}`, M, y3);
         doc.setTextColor(0); y3 += 4;
       }
     }

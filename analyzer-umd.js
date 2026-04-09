@@ -112,5 +112,5 @@ self.TMS_ANALYZER = (function() {
     };
   }
 
-  return { classifyNode, classifyJob, scoreJob, buildResult };
+  return { classifyNode, classifyJob, scoreJob, buildResult, JAVA_EXPR_PATTERNS };
 })();
