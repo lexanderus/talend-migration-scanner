@@ -84,6 +84,7 @@ export function buildResult(jobs, elapsed) {
 
   const issuesSummary = {
     JAVA_EXPR: 0, JOIN_EDGE_STALE: 0, STALE_LEFTDATASET: 0, UNKNOWN_COMPONENT: 0,
+    MANUAL: 0, SKIP_REASON: 0,
   };
   for (const job of jobs) {
     for (const issue of job.issues) {

@@ -206,6 +206,7 @@ body { font-family: 'Segoe UI', system-ui, sans-serif; background: var(--bg); co
 .badge-skip    { background: var(--skip-bg);    color: var(--skip-fg); }
 .issue-tag { font-size: 9px; color: var(--partial-fg); background: #fff3e0; border-radius: 3px; padding: 1px 5px; margin-right: 3px; display: inline-block; }
 .issue-tag.manual { color: #c62828; background: var(--manual-bg); }
+.issue-tag.skip-reason { color: #777; background: #f0f0f0; }
 .score-bar-wrap { display: flex; align-items: center; gap: 6px; }
 .score-bar { height: 6px; border-radius: 3px; background: var(--gray); flex: 1; overflow: hidden; }
 .score-bar-fill { height: 100%; border-radius: 3px; }
@@ -230,9 +231,11 @@ body { font-family: 'Segoe UI', system-ui, sans-serif; background: var(--bg); co
 .issue-group.stale .issue-group-header,
 .issue-group.tjava .issue-group-header,
 .issue-group.unknown .issue-group-header { background: var(--manual-bg); }
+.issue-group.skip-reason .issue-group-header { background: #f5f5f5; }
 .issue-group.stale .ig-count,
 .issue-group.tjava .ig-count,
 .issue-group.unknown .ig-count { color: var(--manual-fg); }
+.issue-group.skip-reason .ig-count { color: #888; }
 .issue-group-body { padding: 10px 14px; display: flex; flex-direction: column; gap: 8px; }
 .issue-group.collapsed .issue-group-body { display: none; }
 .issue-item { background: #fafafa; border: 1px solid #f0f0f0; border-radius: 6px; padding: 8px 12px; font-size: 11px; }

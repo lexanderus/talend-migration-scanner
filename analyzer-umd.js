@@ -86,10 +86,8 @@ self.TMS_ANALYZER = (function() {
       : Math.round((jobs.filter(j => j.status === 'AUTO').length / nonSkip.length) * 1000) / 10;
 
     const issuesSummary = {
-      JAVA_EXPR: 0,
-      JOIN_EDGE_STALE: 0,
-      STALE_LEFTDATASET: 0,
-      UNKNOWN_COMPONENT: 0,
+      JAVA_EXPR: 0, JOIN_EDGE_STALE: 0, STALE_LEFTDATASET: 0, UNKNOWN_COMPONENT: 0,
+      MANUAL: 0, SKIP_REASON: 0,
     };
     for (const job of jobs) {
       for (const issue of job.issues) {

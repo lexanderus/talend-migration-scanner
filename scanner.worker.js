@@ -121,6 +121,16 @@ self.onmessage = function(e) {
         const result = classifyNode(componentType, exprText, COMPONENT_MAP, SKIP_COMPONENTS);
         nodeResults.push(result);
 
+        // Push MANUAL issue for java nodes so they appear in job table + Issues panel
+        if (result.type === 'java') {
+          issues.push({
+            flag: 'MANUAL',
+            node: rawNode['@_name'] || componentType,
+            component: componentType,
+            detail: `${componentType} — custom Java code, must be reimplemented manually`,
+          });
+        }
+
         // Combined issue push — exactly one push per node, no double-push possible.
         // For tMap with leftDataset: JOIN_EDGE_STALE / STALE_LEFTDATASET take priority.
         const leftDataset = rawNode['@_leftDataset'] || '';
@@ -164,6 +174,19 @@ self.onmessage = function(e) {
 
       const status = classifyJob(nodeResults);
       const score  = scoreJob(status, nodeResults);
+
+      // For SKIP jobs: add informational issues listing the skipped component types
+      if (status === 'SKIP' && rawNodes.length > 0) {
+        const skipNames = [...new Set(rawNodes.map(n => n['@_componentName'] || '').filter(Boolean))];
+        for (const name of skipNames) {
+          issues.push({
+            flag: 'SKIP_REASON',
+            node: name,
+            component: name,
+            detail: `${name} — no VF equivalent, job excluded from migration`,
+          });
+        }
+      }
 
       jobs.push({ name: jobName, status, nodes: nodeResults.length, issues, score });
     }

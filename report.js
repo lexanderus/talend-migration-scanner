@@ -250,8 +250,10 @@ function renderResults(result, filename) {
                     ? j.issues.map(i => {
                         const label = i.flag === 'UNKNOWN_COMPONENT' && i.detail
                           ? i.detail.match(/'([^']+)'/)?.[1] || i.flag
-                          : i.flag;
-                        return `<span class="issue-tag${i.flag==='MANUAL'?' manual':''}" title="${i.detail || i.flag}">${label}</span>`;
+                          : (i.component || i.flag);
+                        const cls = i.flag === 'MANUAL' ? ' manual'
+                          : i.flag === 'SKIP_REASON' ? ' skip-reason' : '';
+                        return `<span class="issue-tag${cls}" title="${i.detail || i.flag}">${label}</span>`;
                       }).join('')
                     : '<span style="color:#aaa">—</span>';
                   const scoreHtml = j.score === null
@@ -389,6 +391,16 @@ const ISSUE_META = {
     title: 'UNKNOWN_COMPONENT — Component has no VF equivalent mapping',
     fix: () => '💡 Add component to COMPONENT_MAP or implement manually in VF',
   },
+  MANUAL: {
+    cls: 'tjava', icon: '☕',
+    title: 'tJava / tJavaRow / tJavaFlex — custom Java code, requires manual reimplementation',
+    fix: () => '💡 Rewrite Java logic as SQL TRANSFORM in VF, or extract to a microservice',
+  },
+  SKIP_REASON: {
+    cls: 'skip-reason', icon: '⏭️',
+    title: 'SKIP — Job contains only non-migratable utility components',
+    fix: () => '💡 FTP, file ops, loops etc. have no VF equivalent — reimplement as scripts or orchestration',
+  },
 };
 
 function renderIssues(result) {
@@ -403,17 +415,16 @@ function renderIssues(result) {
     }
   }
 
-  // Manual jobs group
-  const manualJobs = jobs.filter(j => j.status === 'MANUAL');
-
   let html = '<div class="issues-panel">';
 
-  // Render each flag group
+  // Render each flag group via ISSUE_META (includes MANUAL and SKIP_REASON)
   for (const [flag, meta] of Object.entries(ISSUE_META)) {
     const items = flagGroups[flag] || [];
     if (items.length === 0) continue;
+    // SKIP_REASON group starts collapsed (informational only)
+    const collapsed = flag === 'SKIP_REASON' ? ' collapsed' : '';
     html += `
-    <div class="issue-group ${meta.cls}" id="ig-${flag}">
+    <div class="issue-group ${meta.cls}${collapsed}" id="ig-${flag}">
       <div class="issue-group-header" onclick="this.closest('.issue-group').classList.toggle('collapsed')">
         <div class="ig-icon">${meta.icon}</div>
         <div class="ig-title">${meta.title}</div>
@@ -426,32 +437,9 @@ function renderIssues(result) {
             <div class="ii-job">${item.job}
               <span class="job-link" data-goto="${item.status}" data-job="${item.job}">→ view in Results</span>
             </div>
-            <div class="ii-node">📍 ${item.node}</div>
+            <div class="ii-node">📍 ${item.component || item.node}</div>
             ${item.detail ? `<div class="ii-detail">${item.detail}</div>` : ''}
             <div class="ii-fix">${meta.fix(item)}</div>
-          </div>`).join('')}
-      </div>
-    </div>`;
-  }
-
-  // tJava / MANUAL group
-  if (manualJobs.length > 0) {
-    html += `
-    <div class="issue-group tjava" id="ig-MANUAL">
-      <div class="issue-group-header" onclick="this.closest('.issue-group').classList.toggle('collapsed')">
-        <div class="ig-icon">☕</div>
-        <div class="ig-title">tJava — no VF equivalent, requires manual implementation</div>
-        <div class="ig-count">${manualJobs.length} job${manualJobs.length>1?'s':''}</div>
-        <div class="ig-chevron">▼</div>
-      </div>
-      <div class="issue-group-body">
-        ${manualJobs.map(job => `
-          <div class="issue-item">
-            <div class="ii-job">${job.name}
-              <span class="job-link" data-goto="MANUAL">→ view in Results</span>
-            </div>
-            <div class="ii-node">📍 tJava node present</div>
-            <div class="ii-fix">💡 Rewrite Java logic as SQL TRANSFORM in VF, or extract to a microservice</div>
           </div>`).join('')}
       </div>
     </div>`;
