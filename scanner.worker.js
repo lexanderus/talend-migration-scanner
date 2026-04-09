@@ -24,7 +24,7 @@ const XML_OPTS = {
   ignoreAttributes: false,
   attributeNamePrefix: '@_',
   removeNSPrefix: true,
-  isArray: (name) => ['node', 'elementParameter'].includes(name),
+  isArray: (name) => ['node', 'elementParameter', 'connection', 'outputTables', 'inputTables', 'mapperTableEntries'].includes(name),
 };
 
 // ── Main handler ───────────────────────────────────────────────────────────
@@ -109,14 +109,54 @@ self.onmessage = function(e) {
       const nodeResults = [];
       const issues = [];
 
+      // Build connection map: nodeName → list of source node names (FLOW connections into that node)
+      // Used to detect tMap nodes with multiple FLOW inputs (JOIN_EDGE_STALE)
+      // and tMap nodes with inputs from non-existent nodes (STALE_LEFTDATASET)
+      // NOTE: TOS node names are in elementParameter[name='UNIQUE_NAME'], not in @_name attribute.
+      // Connections use source/target = UNIQUE_NAME values.
+      const getUniqueName = (n) => {
+        const params = n.elementParameter || [];
+        const ep = params.find(p => p['@_name'] === 'UNIQUE_NAME');
+        return ep?.['@_value'] || n['@_name'] || '';
+      };
+
+      const rawConns = root?.connection || [];
+      const nodeNames = new Set(rawNodes.map(n => getUniqueName(n)).filter(Boolean));
+      const flowsInto = {}; // target UNIQUE_NAME → [source UNIQUE_NAME, ...]
+      for (const conn of rawConns) {
+        const src = conn['@_source'] || '';
+        const tgt = conn['@_target'] || '';
+        if (tgt && src) {
+          if (!flowsInto[tgt]) flowsInto[tgt] = [];
+          flowsInto[tgt].push(src);
+        }
+      }
+
+      // Build UNIQUE_NAME → componentName lookup for WRITE→JOIN detection
+      const nameToComp = {};
+      for (const n of rawNodes) {
+        const uname = getUniqueName(n);
+        if (uname) nameToComp[uname] = n['@_componentName'] || '';
+      }
+
       for (const rawNode of rawNodes) {
         const componentType = rawNode['@_componentName'] || '';
 
         // Collect expression text from elementParameter values
         const params = rawNode.elementParameter || [];
-        const exprText = params
-          .map(p => String(p['@_value'] || ''))
-          .join('\n');
+        let exprText = params.map(p => String(p['@_value'] || '')).join('\n');
+
+        // For tMap: also extract Java expressions from nodeData/outputTables/mapperTableEntries
+        // (TOS stores tMap mapping expressions in <nodeData><outputTables><mapperTableEntries expression="...">)
+        if (componentType === 'tMap' && rawNode.nodeData) {
+          const nd = Array.isArray(rawNode.nodeData) ? rawNode.nodeData[0] : rawNode.nodeData;
+          for (const tbl of (nd.outputTables || [])) {
+            for (const entry of (tbl.mapperTableEntries || [])) {
+              const expr = entry['@_expression'] || '';
+              if (expr) exprText += '\n' + expr;
+            }
+          }
+        }
 
         const result = classifyNode(componentType, exprText, COMPONENT_MAP, SKIP_COMPONENTS);
         nodeResults.push(result);
@@ -131,37 +171,40 @@ self.onmessage = function(e) {
           });
         }
 
-        // Combined issue push — exactly one push per node, no double-push possible.
-        // For tMap with leftDataset: JOIN_EDGE_STALE / STALE_LEFTDATASET take priority.
-        const leftDataset = rawNode['@_leftDataset'] || '';
-        if (componentType === 'tMap' && leftDataset) {
-          // Priority 1: leftDataset refers to a WRITE node → JOIN_EDGE_STALE
-          const refNode = rawNodes.find(n => (n['@_name'] || '') === leftDataset);
-          if (refNode && COMPONENT_MAP[refNode['@_componentName'] || '']?.operation === 'WRITE') {
-            issues.push({
-              flag: 'JOIN_EDGE_STALE',
-              node: rawNode['@_name'] || componentType,
-              detail: `leftDataset='${leftDataset}' references a WRITE node`,
-            });
-          // Priority 2: leftDataset references a node not present in graph → STALE_LEFTDATASET
-          } else if (!refNode) {
+        // Detect JOIN issues for tMap via connection graph (no leftDataset attribute in TOS XML)
+        if (componentType === 'tMap') {
+          const nodeName = getUniqueName(rawNode) || componentType;
+          const sources = flowsInto[nodeName] || [];
+
+          // STALE_LEFTDATASET: a source node referenced in connections doesn't exist in the graph
+          const staleSrc = sources.find(s => !nodeNames.has(s));
+          if (staleSrc) {
             issues.push({
               flag: 'STALE_LEFTDATASET',
-              node: rawNode['@_name'] || componentType,
-              detail: `leftDataset='${leftDataset}' not found in job graph`,
+              node: nodeName,
+              detail: `Source '${staleSrc}' connected to tMap but not found in job graph`,
             });
-          // Priority 3: no leftDataset edge issue — fall back to classifyNode flag if any
+          // JOIN_EDGE_STALE: tMap has 2+ input flows or any WRITE node feeds into it
+          } else if (sources.length >= 2 || sources.some(s => COMPONENT_MAP[nameToComp[s]]?.operation === 'WRITE')) {
+            const writeSrc = sources.find(s => COMPONENT_MAP[nameToComp[s]]?.operation === 'WRITE');
+            issues.push({
+              flag: 'JOIN_EDGE_STALE',
+              node: nodeName,
+              detail: writeSrc
+                ? `WRITE node '${writeSrc}' feeds into tMap — set join keys manually in VF`
+                : `tMap has ${sources.length} input flows (${sources.join(', ')}) — set join keys manually in VF`,
+            });
           } else if (result.flag) {
             issues.push({
               flag: result.flag,
-              node: rawNode['@_name'] || componentType,
+              node: nodeName,
               detail: result.flag === 'UNKNOWN_COMPONENT'
                 ? `Component '${componentType}' is not in COMPONENT_MAP`
                 : exprText.slice(0, 120),
             });
           }
         } else if (result.flag) {
-          // Non-tMap nodes (or tMap with no leftDataset): push classifyNode flag normally
+          // Non-tMap nodes: push classifyNode flag normally
           issues.push({
             flag: result.flag,
             node: rawNode['@_name'] || componentType,
