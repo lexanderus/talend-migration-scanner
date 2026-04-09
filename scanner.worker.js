@@ -211,9 +211,7 @@ self.onmessage = function(e) {
             issues.push({
               flag: 'JOIN_EDGE_STALE',
               node: nodeName,
-              detail: writeSrc
-                ? `WRITE node '${writeSrc}' feeds into tMap — set join keys manually in VF`
-                : `tMap has ${sources.length} input flows (${sources.join(', ')}) — set join keys manually in VF`,
+              detail: `WRITE node '${writeSrc}' feeds into tMap — verify join keys in VF (auto-handled for most split-phase jobs)`,
             });
           } else if (result.flag) {
             issues.push({
