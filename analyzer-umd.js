@@ -5,13 +5,11 @@
 
 self.TMS_ANALYZER = (function() {
   const JAVA_EXPR_PATTERNS = [
-    /Relational\./,
-    /\.trim\(\)/,
-    /\.length\(\)/,
-    /StringHandling\./,
-    /TalendDate\./,
-    /TalendString\./,
-    /Numeric\./,
+    /TalendString\./,          // string utility class — no SQL equivalent
+    /TalendDate\.(?!parseDate)/, // date utility (except parseDate → to_date())
+    /TalendDataGenerator\./,   // data gen — no SQL equivalent
+    /StringHandling\./,        // string util class — no SQL equivalent
+    /\bnew\s+java\./,          // Java constructors — no SQL equivalent
   ];
 
   /**

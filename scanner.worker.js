@@ -185,7 +185,7 @@ self.onmessage = function(e) {
               detail: `Source '${staleSrc}' connected to tMap but not found in job graph`,
             });
           // JOIN_EDGE_STALE: tMap has 2+ input flows or any WRITE node feeds into it
-          } else if (sources.length >= 2 || sources.some(s => COMPONENT_MAP[nameToComp[s]]?.operation === 'WRITE')) {
+          } else if (sources.some(s => COMPONENT_MAP[nameToComp[s]]?.operation === 'WRITE') && sources.length >= 2) {
             const writeSrc = sources.find(s => COMPONENT_MAP[nameToComp[s]]?.operation === 'WRITE');
             issues.push({
               flag: 'JOIN_EDGE_STALE',

@@ -32,15 +32,25 @@ describe('classifyNode', () => {
     assert.equal(r.type, 'java');
   });
 
-  it('returns JAVA_EXPR flag when expression contains Relational.ISNULL', () => {
-    const r = classifyNode('tMap', 'Relational.ISNULL(x.trim())', COMPONENT_MAP, SKIP_COMPONENTS);
+  it('returns JAVA_EXPR flag when expression contains TalendString.', () => {
+    const r = classifyNode('tMap', 'TalendString.removeAccents(row1.name)', COMPONENT_MAP, SKIP_COMPONENTS);
     assert.equal(r.type, 'mapped');
     assert.equal(r.flag, 'JAVA_EXPR');
   });
 
-  it('returns JAVA_EXPR flag when expression contains .trim()', () => {
-    const r = classifyNode('tMap', 'someVar.trim()', COMPONENT_MAP, SKIP_COMPONENTS);
+  it('returns JAVA_EXPR flag when expression contains TalendDate. (not parseDate)', () => {
+    const r = classifyNode('tMap', 'TalendDate.formatDate("yyyy", new Date())', COMPONENT_MAP, SKIP_COMPONENTS);
     assert.equal(r.flag, 'JAVA_EXPR');
+  });
+
+  it('does NOT return JAVA_EXPR for auto-convertible Relational.ISNULL', () => {
+    const r = classifyNode('tMap', 'Relational.ISNULL(x)', COMPONENT_MAP, SKIP_COMPONENTS);
+    assert.equal(r.flag, null);
+  });
+
+  it('does NOT return JAVA_EXPR for auto-convertible .trim()', () => {
+    const r = classifyNode('tMap', 'someVar.trim()', COMPONENT_MAP, SKIP_COMPONENTS);
+    assert.equal(r.flag, null);
   });
 
   it('returns UNKNOWN_COMPONENT for unmapped non-skip non-java component', () => {

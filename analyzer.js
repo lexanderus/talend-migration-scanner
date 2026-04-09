@@ -1,14 +1,15 @@
 // analyzer.js
 // Pure analysis functions — no browser APIs, fully testable in Node.js
 
+// Only patterns that migrate_to_vf.py cannot auto-convert to SQL.
+// Convertible patterns (Relational.ISNULL, .trim(), Numeric., Integer.parseInt etc.)
+// are intentionally excluded — they map to NULLIF/TRIM/CAST and are handled automatically.
 const JAVA_EXPR_PATTERNS = [
-  /Relational\./,
-  /\.trim\(\)/,
-  /\.length\(\)/,
-  /StringHandling\./,
-  /TalendDate\./,
-  /TalendString\./,
-  /Numeric\./,
+  /TalendString\./,          // string utility class — no SQL equivalent
+  /TalendDate\.(?!parseDate)/, // date utility (except parseDate → to_date())
+  /TalendDataGenerator\./,   // data gen — no SQL equivalent
+  /StringHandling\./,        // string util class — no SQL equivalent
+  /\bnew\s+java\./,          // Java constructors — no SQL equivalent
 ];
 
 /**
