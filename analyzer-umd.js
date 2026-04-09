@@ -13,7 +13,8 @@ self.TMS_ANALYZER = (function() {
     /TalendDate\.(?!parseDate)/, // date utility (except parseDate → to_date())
     /TalendDataGenerator\./,   // data gen — no SQL equivalent
     /StringHandling\./,        // string util class — no SQL equivalent
-    /\bnew\s+java\./,          // Java constructors — no SQL equivalent
+    // Java constructors — except new java.util.Date((long)(t.col*1000)/1000) which → from_unixtime()
+    /\bnew\s+java\.(?!util\.Date\s*\(\s*\(long\))/,
   ];
 
   /**

@@ -43,6 +43,17 @@ describe('classifyNode', () => {
     assert.equal(r.flag, 'JAVA_EXPR');
   });
 
+  it('returns JAVA_EXPR for generic new java. constructor (not auto-converted)', () => {
+    const r = classifyNode('tMap', 'new java.math.BigDecimal(row1.val)', COMPONENT_MAP, SKIP_COMPONENTS);
+    assert.equal(r.flag, 'JAVA_EXPR');
+  });
+
+  it('does NOT return JAVA_EXPR for new java.util.Date((long)...) — auto-converted to from_unixtime()', () => {
+    const expr = 'new java.util.Date((long)(row1.timestamp*1000)/1000)';
+    const r = classifyNode('tMap', expr, COMPONENT_MAP, SKIP_COMPONENTS);
+    assert.equal(r.flag, null);
+  });
+
   it('returns JAVA_EXPR when ternary RESULT has .trim() (not auto-converted)', () => {
     // migrate_to_vf.py cannot convert "? null : col.trim()" — result is not a simple col ref
     const expr = '(Relational.ISNULL(row1.col)||row1.col.trim().equals(""))?null:row1.col.trim()';
